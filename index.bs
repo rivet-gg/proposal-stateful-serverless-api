@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<pre class="metadata">
+Title: Stateful Serverless API
+Shortname: stateful-serverless-api
+Repository: rivet-gg/proposal-stateful-serverless-api
+</pre>
+
