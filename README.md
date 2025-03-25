@@ -4,6 +4,11 @@ This repository contains a proposal for a Stateful Serverless API specification.
 
 This specification will need to be rewritten in a more official format. Its current form is temporary.
 
+## Specification
+
+- [Blog post + rendered specification](https://rivet.gg/blog/2025-03-23-what-would-a-w3c-standard-look-like-for-stateful-serverless-)
+- [Bikeshed specification](./index.bs) (unrendered)
+
 ## Relevant Runtimes
 
 - [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
