@@ -18,7 +18,7 @@ Status: LD
 Title: Stateful Serverless API
 </pre>
 
-## `ServerlessWorker` ## {#serverless-worker}
+## ServerlessWorker` ## {#serverless-worker}
 
 <img src="./media/serverlessworker.png" alt="Diagram illustrating the architecture of ServerlessWorker with client connections and persistent storage">
 
@@ -68,9 +68,19 @@ console.log(self.name);
 
 ### Terminating `ServerlessWorker`s ### {#terminating-workers}
 
-This could go two ways: lean into the existing <a href="https://github.com/wintercg/proposal-functions-api/tree/main">WinterTC for ESM-style handlers</a> like Durable Objects and Rivet or opt for a simpler & portable interface like Web Workers.
+Add a `terminate` method on the `ServerlessWorker` itself, leave it up to the frameworks to implement destroying. For example:
 
-In my opinion, request/response should use ESM-style exports with the `SharedWorker` interface. This allows the simplicity of request/response & also enables full bidirectional streaming -- like a WebSocket but without the overhead.
+<pre class="example" highlight="js" title="worker.js">
+export default {
+  connect(event) {
+    self.terminate();
+  }
+}
+</pre>
+
+### Connections & Messages ### {#connections-messages}
+
+`ServerlessWorker` should use ESM-style exports with a `SharedWorker`-like API. This allows the simplicity of request/response & also enables full bidirectional streaming -- like a WebSocket but without the overhead.
 
 <div class="example">
 <pre class="example-code" highlight="js" title="server.js">
@@ -83,7 +93,7 @@ export default {
 };
 </pre>
 
-<pre class="example-code" highlight="js" title="server.js">
+<pre class="example-code" highlight="js" title="worker.js">
 export default {
   connect(conn) {
     const port = conn.ports[0];
@@ -101,8 +111,6 @@ export default {
 };
 </pre>
 </div>
-
-Coincidentally, this also feels very similar to socket.io whose API has proven itself as flexible & easy to understand.
 
 ### Storage ### {#storage}
 
@@ -125,11 +133,36 @@ export default {
 
 ### Scheduling ### {#scheduling}
 
+Provide an API similar to Cloudflare's <a href="https://developers.cloudflare.com/durable-objects/api/storage-api/#setalarm">`setAlarm`</a>. For example:
+
+<pre class="example" highlight="js" title="worker.js">
+// Set an alarm for 1 day
+setAlarm(Date.now() + 86_400 * 1000);
+
+export default {
+  alarm() {
+    console.log("It's been 1 day");
+  }
+}
+</pre>
+
+### Sleeping & Upgrading & Host Migrations ### {#sleeping-upgrading}
+
+Provide an API similar to Durable Objects `waitUntil`. The provider can decide the maximum duration for this function. For example:
+
+<pre class="example" highlight="js" title="worker.js">
+async function doSomethingAsync() {
+  // ...
+}
+
+waitUntil(doSomethingAsync());
+</pre>
+
+### Handling Backpressure ### {#backpressure}
+
 Define an error type that can be used by developers to handle backpressure gracefully.
 
 ### Security Model ### {#security-model}
-
-**Proposal**
 
 `ServerlessWorker` should rely on the existing work in WinterTC. They are secured via these attributes:
 
